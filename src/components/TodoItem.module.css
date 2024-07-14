@@ -1,0 +1,30 @@
+/* TodoItem.module.css */
+.todoItem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: all 0.3s ease;
+  }
+  
+  .todoItemActions {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  
+  .todoItemActions li {
+    margin-inline-start: 0 !important;
+    margin-right: 8px;
+  }
+  
+  @media (min-width: 576px) {
+    .todoItem {
+      flex-direction: row;
+      align-items: center;
+    }
+  
+    .todoItemActions {
+      margin-top: 0;
+    }
+  }
+  
