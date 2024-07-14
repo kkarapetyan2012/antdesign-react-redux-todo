@@ -27,7 +27,7 @@ interface AsyncThunkConfig {
 
 export type FilterType = 'all' | 'completed' | 'incomplete' | 'overdue';
 
-interface TodosState {
+export interface TodosState {
   items: Todo[];
   filter: FilterType;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -92,13 +92,10 @@ export const todosSlice = createSlice({
         state.items = JSON.parse(savedTodos);
       }
     },
-    restoreTodo: (state) => {
-      // Assuming you have a way to get the todo back from the trash
-      const todo = {}; // Replace with actual logic to restore the todo
-      if (todo) {
-        state.items.push(todo);
-        saveStateToLocalStorage(state);
-      }
+    restoreTodo: (state, action: PayloadAction<Todo>) => {
+      const todo = action.payload;
+      state.items.push(todo);
+      saveStateToLocalStorage(state);
     },
     editTodo: (state, action: PayloadAction<Todo>) => {
       const index = state.items.findIndex(todo => todo.id === action.payload.id);

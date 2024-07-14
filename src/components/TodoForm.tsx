@@ -83,7 +83,10 @@ const TodoForm: React.FC = () => {
                   format="YYYY-MM-DD"
                   placeholder="Deadline"
                   value={field.value ? moment(field.value) : null}
-                  onChange={(date, dateString) => form.setFieldValue(field.name, dateString)}
+                  onChange={(date, dateString) => {
+                    console.log(date);
+                    form.setFieldValue(field.name, dateString);
+                  }}
                   status={touched.deadline && errors.deadline ? 'error' : ''}
                 />
               )}

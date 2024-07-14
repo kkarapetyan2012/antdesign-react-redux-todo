@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import todosReducer from './features/todos/todosSlice';
+import todosReducer, { TodosState } from './features/todos/todosSlice';
 
 export const store = configureStore({
   reducer: {
@@ -7,5 +7,9 @@ export const store = configureStore({
   },
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+// Explicitly type RootState to reference TodosState
+export type RootState = {
+  todos: TodosState;
+};
+
 export type AppDispatch = typeof store.dispatch;
