@@ -1,15 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
-import todosReducer, { TodosState } from './features/todos/todosSlice';
+import todosReducer from './features/todos/todosSlice';
+import { loadState, saveState } from './app/localStorage';
 
-export const store = configureStore({
+const persistedState = loadState();
+
+const store = configureStore({
   reducer: {
     todos: todosReducer,
   },
+  preloadedState: persistedState,
 });
 
-// Explicitly type RootState to reference TodosState
-export type RootState = {
-  todos: TodosState;
-};
+store.subscribe(() => {
+  saveState(store.getState());
+});
 
+export type RootState = ReturnType<typeof store.getState>; // Correctly type RootState
 export type AppDispatch = typeof store.dispatch;
+
+export default store;

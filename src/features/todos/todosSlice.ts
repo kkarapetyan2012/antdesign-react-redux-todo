@@ -1,17 +1,9 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { RootState } from '../../store';
+import { RootState } from '../../store';  // Adjust the path as needed
 
-// Define the async thunk
-export const fetchTodos = createAsyncThunk<Todo[], void, AsyncThunkConfig>('todos/fetchTodos', async () => {
-  const response = await fetch('/api/todos');
-  if (!response.ok) {
-    throw new Error('Failed to fetch todos');
-  }
-  const todos = await response.json();
-  return todos;  // This will be passed on to the fulfilled action payload
-});
+export type FilterType = 'all' | 'completed' | 'incomplete' | 'overdue';
 
-interface Todo {
+export interface Todo {
   id: string;
   title: string;
   description: string;
@@ -19,13 +11,6 @@ interface Todo {
   completed: boolean;
   overdue?: boolean;
 }
-
-// Define the AsyncThunkConfig type
-interface AsyncThunkConfig {
-  rejectValue: string;
-}
-
-export type FilterType = 'all' | 'completed' | 'incomplete' | 'overdue';
 
 export interface TodosState {
   items: Todo[];
@@ -41,35 +26,43 @@ const initialState: TodosState = {
   error: null,
 };
 
-const saveStateToLocalStorage = (state: TodosState) => {
-  localStorage.setItem('todos', JSON.stringify(state.items));
-};
+export const fetchTodos = createAsyncThunk<Todo[], void, { rejectValue: string }>(
+  'todos/fetchTodos',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/todos');
+      if (!response.ok) {
+        throw new Error('Failed to fetch todos');
+      }
+      const todos = await response.json();
+      return todos;
+    } catch (error) {
+      return rejectWithValue('Failed to fetch todos');
+    }
+  }
+);
 
-export const todosSlice = createSlice({
+const todosSlice = createSlice({
   name: 'todos',
   initialState,
   reducers: {
     addTodo: (state, action: PayloadAction<Todo>) => {
       state.items.push(action.payload);
-      saveStateToLocalStorage(state);
     },
     toggleComplete: (state, action: PayloadAction<{ id: string }>) => {
       const todo = state.items.find(todo => todo.id === action.payload.id);
       if (todo) {
         todo.completed = !todo.completed;
         todo.overdue = !todo.completed && new Date(todo.deadline) < new Date();
-        saveStateToLocalStorage(state);
       }
     },
     deleteTodo: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter(todo => todo.id !== action.payload);
-      saveStateToLocalStorage(state);
     },
     updateTodo: (state, action: PayloadAction<Todo>) => {
       const index = state.items.findIndex(todo => todo.id === action.payload.id);
       if (index !== -1) {
         state.items[index] = { ...state.items[index], ...action.payload };
-        saveStateToLocalStorage(state);
       }
     },
     setOverdue: (state) => {
@@ -81,7 +74,6 @@ export const todosSlice = createSlice({
           todo.overdue = false;
         }
       });
-      saveStateToLocalStorage(state);
     },
     setFilter: (state, action: PayloadAction<FilterType>) => {
       state.filter = action.payload;
@@ -95,18 +87,15 @@ export const todosSlice = createSlice({
     restoreTodo: (state, action: PayloadAction<Todo>) => {
       const todo = action.payload;
       state.items.push(todo);
-      saveStateToLocalStorage(state);
     },
     editTodo: (state, action: PayloadAction<Todo>) => {
       const index = state.items.findIndex(todo => todo.id === action.payload.id);
       if (index !== -1) {
         state.items[index] = { ...state.items[index], ...action.payload };
-        saveStateToLocalStorage(state);
       }
     },
     updateOrder: (state, action: PayloadAction<Todo[]>) => {
       state.items = action.payload;
-      saveStateToLocalStorage(state);
     },
   },
   extraReducers: (builder) => {
@@ -116,7 +105,7 @@ export const todosSlice = createSlice({
       })
       .addCase(fetchTodos.fulfilled, (state, action: PayloadAction<Todo[]>) => {
         state.status = 'succeeded';
-        state.items = action.payload;  // Set the fetched todos
+        state.items = action.payload;
       })
       .addCase(fetchTodos.rejected, (state, action) => {
         state.status = 'failed';
@@ -125,16 +114,24 @@ export const todosSlice = createSlice({
   },
 });
 
-export const { addTodo, toggleComplete, deleteTodo, updateTodo, setOverdue, setFilter, loadState, restoreTodo, editTodo, updateOrder } = todosSlice.actions;
+export const {
+  addTodo,
+  toggleComplete,
+  deleteTodo,
+  updateTodo,
+  setOverdue,
+  setFilter,
+  loadState,
+  restoreTodo,
+  editTodo,
+  updateOrder,
+} = todosSlice.actions;
 
-// Selector to get the current filter
 export const selectFilter = (state: RootState) => state.todos.filter;
-
-// Selector to get todo items
-export const selectTodos = (state: { todos: TodosState }) => state.todos.items;
-
-// Selector to get a specific todo by ID
-export const selectTodoById = (state: { todos: TodosState }, todoId: string) =>
+export const selectTodos = (state: RootState) => state.todos.items;
+export const selectTodoById = (state: RootState, todoId: string) =>
   state.todos.items.find((todo) => todo.id === todoId);
 
 export default todosSlice.reducer;
+
+// export type { TodosState }; // Explicitly export TodosState
